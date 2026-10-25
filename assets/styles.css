@@ -1,0 +1,410 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap');
+
+/* =========================================================
+   Paleta "Sala de Aula" e medidas gerais
+   ========================================================= */
+:root {
+  /* Cores principais */
+  --azul-lousa: #1F3A6B;
+  --verde-quadro: #3E8A6E;
+  --amarelo-lapis: #F2C14E;
+  --grafite: #2A3550;
+  --fundo: #F4F6FA;
+
+  /* Tons de apoio */
+  --grafite-suave: #6B7489;
+  --linha: #E3E7EF;
+  --cinza-giz: #A9B4C8;
+  --giz-claro: #E8EDF7;      /* texto do menu lateral */
+  --cinza-claro: #EEF1F6;
+  --cinza-medio: #C5CCD8;
+  --verde-claro: #E3F2EC;
+  --vermelho-alerta: #B5452F;
+  --vermelho-claro: #FBEBE6;
+  --amarelo-escuro: #B8891A; /* usada nos gráficos (Python) */
+  --azul-medio: #3B6FB6;     /* usada nos gráficos (Python) */
+  --verde-menta: #8DBFA8;    /* usada nos gráficos (Python) */
+
+  /* Medidas */
+  --topo: 1.5rem;            /* margem de cima: igual no menu e na página */
+  --raio: 12px;              /* cantos dos cards */
+
+  /* Fontes */
+  --font-titulo: 'Montserrat', system-ui, sans-serif;
+  --font-corpo: 'Avenir', 'Avenir Next', 'Nunito Sans', system-ui, 'Segoe UI', sans-serif;
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+html, body, .stApp, p, label, button {
+  font-family: var(--font-corpo);
+}
+.stApp {
+  background: var(--fundo);
+  color: var(--grafite);
+}
+h1, h2, h3 {
+  font-family: var(--font-titulo) !important;
+  color: var(--azul-lousa) !important;
+  font-weight: 800 !important;
+}
+
+/* Cabeçalho do Streamlit sem altura */
+[data-testid="stHeader"] {
+  background: transparent;
+  height: 0;
+}
+
+/* Esconde o bloco vazio criado pelo st.markdown do CSS (o estilo continua valendo) */
+[data-testid="stElementContainer"]:has(style) {
+  display: none;
+}
+
+/* Espaçamento da página */
+[data-testid="stMainBlockContainer"], .block-container {
+  padding: var(--topo) 1.5rem 2rem !important;
+}
+
+/* =========================================================
+   Menu lateral
+   ========================================================= */
+[data-testid="stSidebar"] { background: var(--azul-lousa); }
+[data-testid="stSidebar"] * { color: var(--giz-claro); }
+[data-testid="stSidebarHeader"] { display: none; }
+[data-testid="stSidebarUserContent"] { padding-top: var(--topo) !important; }
+
+/* Marca: ícone ao lado, título e subtítulo empilhados */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin-bottom: 3rem;          /* distância até as abas */
+}
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  color: #fff !important;
+}
+.brand-text {
+  border-bottom: 3px solid var(--amarelo-lapis);
+  padding-bottom: .35rem;
+}
+.brand-title {
+  font-family: var(--font-titulo);
+  font-weight: 800;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #fff !important;
+}
+.brand-sub {
+  font-size: .8rem;
+  line-height: 1.2;
+  letter-spacing: .02em;
+  color: var(--cinza-giz) !important;
+}
+
+/* Abas do menu */
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .2rem; }
+[data-testid="stSidebar"] .stButton button {
+  justify-content: flex-start;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  padding: .65rem .9rem;
+  font-weight: 600;
+}
+[data-testid="stSidebar"] .stButton button > div {
+  justify-content: flex-start;
+  width: 100%;
+}
+[data-testid="stSidebar"] .stButton button p { font-size: 1.05rem; }
+[data-testid="stSidebar"] .stButton button [data-testid="stIconMaterial"] { font-size: 1.4rem; }
+[data-testid="stSidebar"] .stButton button:hover { background: rgba(255, 255, 255, .08); }
+
+/* Aba ativa (1ª linha = Streamlit antigo | 2ª = novo) */
+[data-testid="stSidebar"] .stButton button[kind="primary"],
+[data-testid="stSidebar"] .stButton button[data-testid="stBaseButton-primary"] {
+  background: rgba(255, 255, 255, .12);
+  border-left-color: var(--amarelo-lapis);
+}
+
+/* Crédito no rodapé do menu */
+.credito {
+  position: fixed;
+  bottom: 1rem;
+  left: 2rem;
+  font-size: .72rem;
+  letter-spacing: .02em;
+  color: var(--cinza-giz) !important;
+}
+
+/* =========================================================
+   Título da página
+   ========================================================= */
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.page-title h1 {
+  font-size: 1.6rem;
+  margin: 0;
+  padding: 0;
+}
+.page-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--azul-lousa);
+  color: #fff;
+}
+
+/* =========================================================
+   Barra de filtros
+   ========================================================= */
+.st-key-filtros {
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  padding: .5rem .8rem;
+}
+
+/* Rótulo (ANO, REGIÃO...) */
+.st-key-filtros label p {
+  font-size: .72rem !important;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--grafite-suave);
+}
+.st-key-filtros [data-testid="stWidgetLabel"] {
+  min-height: 0 !important;
+  margin-bottom: .2rem !important;
+}
+
+/* Caixas dos filtros (1ª linha = Streamlit novo | 2ª = antigo) */
+.st-key-filtros [data-testid="stSelectbox"] [role="group"],
+.st-key-filtros [data-baseweb="select"] > div {
+  background-color: var(--cinza-claro) !important;
+  border: 1px solid var(--cinza-medio) !important;
+  border-radius: 8px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+}
+.st-key-filtros [data-testid="stSelectbox"] [role="group"]:hover,
+.st-key-filtros [data-baseweb="select"] > div:hover {
+  border-color: var(--azul-lousa) !important;
+}
+.st-key-filtros [data-testid="stSelectbox"] input { font-size: .9rem; }
+
+/* =========================================================
+   Banner
+   ========================================================= */
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  min-height: 130px;                  /* altura do banner */
+  margin: .4rem 0 1rem;
+  background: var(--azul-lousa);
+}
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 35%;    /* 2º valor = parte da foto que aparece */
+}
+/* Degradê azul lousa por cima da foto: forte à esquerda, transparente à direita */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--azul-lousa) 97%, transparent) 0%,
+    color-mix(in srgb, var(--azul-lousa) 85%, transparent) 40%,
+    color-mix(in srgb, var(--azul-lousa) 25%, transparent) 100%
+  );
+}
+.hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem 1.6rem;
+}
+.hero-pill {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 999px;
+  padding: .25rem .85rem;
+}
+.hero h2 {
+  color: #fff !important;
+  font-size: 1.55rem;
+  margin: .9rem 0 0;
+  padding: 0;
+}
+
+/* =========================================================
+   Cards de indicadores
+   ========================================================= */
+.kpi {
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-top: 4px solid var(--acento);   /* cor vem do Python */
+  border-radius: var(--raio);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  min-height: 150px;                     /* deixa os 4 cards da mesma altura */
+}
+.kpi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: .5rem;
+}
+.kpi-label {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--grafite);
+}
+.kpi-icon {
+  display: inline-flex;
+  padding: .45rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--acento) 14%, white);  /* tom claro da cor do card */
+  color: var(--azul-lousa);
+}
+.kpi-value {
+  font-family: var(--font-titulo);
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: var(--azul-lousa);
+  margin: .25rem 0 .35rem;
+}
+.kpi-foot {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .85rem;
+  color: var(--grafite-suave);
+}
+
+/* Selo de variação */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  font-weight: 700;
+  font-size: .8rem;
+  border-radius: 6px;
+  padding: .15rem .45rem;
+}
+.chip-bom  { background: var(--verde-claro);    color: var(--verde-quadro); }
+.chip-ruim { background: var(--vermelho-claro); color: var(--vermelho-alerta); }
+
+/* =========================================================
+   Cards dos gráficos e quadrantes (todo container com key "card_...")
+   ========================================================= */
+[class*="st-key-card_"] {
+  height: 100%;                          /* cards lado a lado com a mesma altura */
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  padding: 1rem 1.1rem .6rem;
+}
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-card_"]) {
+  flex: 1;
+}
+
+/* Cabeçalho: título à esquerda, etiqueta à direita */
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+}
+.card-head h3 {
+  font-size: .95rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin: 0;
+  padding: 0;
+}
+.card-head [data-testid="stHeaderActionElements"] { display: none; }  /* ícone de link do Streamlit */
+
+/* Etiqueta (ano, período, detalhe): azul, ou amarela; vazia não aparece */
+.card-head > span {
+  font-size: .8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--azul-lousa);
+  border-radius: 999px;
+  padding: .2rem .7rem;
+}
+.card-head > span.etiqueta-amarela {
+  background: var(--amarelo-lapis);
+  color: var(--azul-lousa);
+}
+.card-head > span:empty { display: none; }
+
+/* Cabeçalho com ícone (página Insights) */
+.card-head-icone {
+  align-items: flex-start;
+  margin-bottom: .8rem;                  /* distância entre o título e o texto */
+}
+.card-head-left {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.card-icon {
+  display: inline-flex;
+  padding: .4rem;
+  border-radius: 8px;
+  background: var(--cinza-claro);
+  color: var(--azul-lousa);
+}
+
+/* =========================================================
+   Insights
+   ========================================================= */
+.st-key-insights_titulo { margin-bottom: 1rem; }   /* espaço entre o título e os cards */
+
+.insight-texto {
+  font-size: .9rem !important;
+  line-height: 1.5;
+  color: var(--grafite);
+  margin: 0 0 .8rem !important;
+}
+
+/* Quadrante "Renda × abandono": texto um pouco mais abaixo */
+.st-key-card_correlacao [data-testid="stColumn"]:first-child [data-testid="stMarkdownContainer"] {
+  padding-top: 1.6rem;
+}
+
+/* Palavras destacadas no texto */
+.realce-azul,
+.realce-verde,
+.realce-vermelho { font-weight: 800; }
+.realce-azul     { color: var(--azul-lousa); }
+.realce-verde    { color: var(--verde-quadro); }
+.realce-vermelho { color: var(--vermelho-alerta); }
+.realce-amarelo {
+  background: color-mix(in srgb, var(--amarelo-lapis) 35%, white);   /* efeito marca-texto */
+  padding: 0 .25rem;
+  border-radius: 4px;
+  font-weight: 700;
+}
