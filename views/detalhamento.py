@@ -54,7 +54,20 @@ def render(df: pd.DataFrame) -> None:
     # Só Fundamental e Médio, para a dispersão e o ranking
     base_etapas = base[base["Grupo_de_Abandono"].isin(ETAPAS["Fundamental + Médio"])]
 
-    # ---------- Linha 1: dispersão (2/3) e ranking de UFs (1/3) ----------
+    # ---------- Linha 1: renda e abandono por ano (largura toda) ----------
+    with st.container(key="card_linha"):
+        serie = data.serie_anual(data.filtrar_base(df, local, "Fundamental + Médio", dep), regiao)
+        ui.card_titulo(
+            "Renda média e abandono por ano",
+            f"{int(df['Ano'].min())} – {int(df['Ano'].max())}",
+        )
+        if serie.empty:
+            st.info("Sem dados para esta combinação de filtros. Troque a localização ou a dependência.")
+        else:
+            st.plotly_chart(charts.grafico_renda_abandono(serie, ano), width="stretch",
+                            config=charts.PLOTLY_CONFIG)
+
+    # ---------- Linha 2: dispersão (2/3) e ranking de UFs (1/3) ----------
     ufs = data.tabela_ufs(base_etapas, ano, regiao)
     col_disp, col_rank = st.columns([2, 1], gap="small")
 
@@ -72,6 +85,10 @@ def render(df: pd.DataFrame) -> None:
         else:
             st.plotly_chart(charts.grafico_dispersao(ufs), width="stretch",
                             config=charts.PLOTLY_CONFIG)
+            st.caption(
+                f"Cada ponto é uma UF em {ano}. Taxa = média de Fundamental e Médio. "
+                "A linha tracejada mostra a tendência (regressão linear)."
+            )
 
     # Top 10 UFs com maior abandono
     with col_rank, st.container(key="card_ranking"):
@@ -82,7 +99,7 @@ def render(df: pd.DataFrame) -> None:
             st.plotly_chart(charts.grafico_ranking_ufs(ufs, top_n=10), width="stretch",
                             config=charts.PLOTLY_CONFIG)
 
-    # ---------- Linha 2: por série e por região (metade cada) ----------
+    # ---------- Linha 3: por série e por região (metade cada) ----------
     col_serie, col_regiao = st.columns(2, gap="small")
 
     # Abandono em cada série escolar (1º EF ao 3º EM)
@@ -108,7 +125,7 @@ def render(df: pd.DataFrame) -> None:
             st.plotly_chart(charts.grafico_regioes(serie_reg, regiao), width="stretch",
                             config=charts.PLOTLY_CONFIG)
 
-    # ---------- Linha 3: por localização e por dependência (metade cada) ----------
+    # ---------- Linha 4: por localização e por dependência (metade cada) ----------
     col_loc, col_dep = st.columns(2, gap="small")
 
     # Urbana x Rural, barras verticais (usa a dependência escolhida; ignora o filtro de localização)

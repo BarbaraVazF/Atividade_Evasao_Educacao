@@ -2,9 +2,9 @@
 import pandas as pd
 import streamlit as st
 
-from src import charts, data, ui
+from src import data, ui
 from src.config import (
-    AMARELO_LAPIS, AZUL_LOUSA, DEPENDENCIAS, LOCALIZACOES, REGIOES, VERDE_QUADRO,
+    AMARELO_LAPIS, AZUL_LOUSA, AZUL_MEDIO, DEPENDENCIAS, LOCALIZACOES, REGIOES, VERDE_QUADRO,
 )
 from src.formatters import pct, reais, sinal
 
@@ -69,10 +69,22 @@ def render(df: pd.DataFrame) -> None:
         f"Abandono escolar e renda média {escopo}",
     )
 
-    # ---------- Cards de indicadores ----------
+    # ---------- Dados dos cards ----------
     base = data.filtrar_base(df, local, etapa, dep)
     k = data.calcular_kpis(base, ano, regiao)
 
+    # Localização: urbana x rural (respeita dependência e etapa; ignora o filtro de localização)
+    loc = data.media_por_categoria(df, ano, regiao, "Localizacao", ["Urbana", "Rural"],
+                                   {"Dependencia_Administrativa": dep}, etapa)
+    tem_loc = {"Urbana", "Rural"} <= set(loc.index)
+    dif_rural = (loc["Rural"] / loc["Urbana"] - 1) * 100 if tem_loc and loc["Urbana"] else None
+
+    # Dependência: compara as redes (respeita localização e etapa; ignora o filtro de dependência)
+    redes = data.media_por_categoria(df, ano, regiao, "Dependencia_Administrativa",
+                                     ["Estadual", "Municipal", "Federal", "Privada"],
+                                     {"Localizacao": local}, etapa).sort_values(ascending=False)
+
+    # ---------- Cards (3 por linha, todos do mesmo tamanho) ----------
     cards = [
         ui.kpi_card(
             "Taxa média de abandono", pct(k.taxa), "trending_down", AZUL_LOUSA,
@@ -96,24 +108,20 @@ def render(df: pd.DataFrame) -> None:
             k.critico_rotulo, k.critico_nome, "map_pin", AMARELO_LAPIS,
             rodape=f"{pct(k.critico_taxa)} de abandono médio",
         ),
+        ui.kpi_card(
+            "Abandono na zona rural", pct(loc.get("Rural")), "building", VERDE_QUADRO,
+            rodape=f"vs {pct(loc['Urbana'])} na urbana" if tem_loc else "sem comparação urbana",
+            delta=None if dif_rural is None else f"{sinal(dif_rural, 0)}%",
+            delta_bom=None if dif_rural is None else dif_rural <= 0,
+        ),
+        ui.kpi_card(
+            "Rede com mais abandono",
+            redes.index[0] if not redes.empty else "—", "school", AZUL_MEDIO,
+            rodape=(f"{pct(redes.iloc[0])} · menor: {redes.index[-1].lower()} ({pct(redes.iloc[-1])})"
+                    if len(redes) >= 2 else "sem dados por rede"),
+        ),
     ]
-    for coluna, card in zip(st.columns(4), cards):
-        with coluna:
-            ui.html(card)
-
-    # ---------- Gráfico: renda e abandono por ano (largura toda) ----------
-    with st.container(key="card_linha"):
-        serie = data.serie_anual(base, regiao)
-        ui.card_titulo(
-            "Renda média e abandono por ano",
-            f"{int(df['Ano'].min())} – {int(df['Ano'].max())}",
-        )
-        if serie.empty:
-            st.info("Sem dados para esta combinação de filtros. "
-                    "Troque a localização, a dependência ou a etapa.")
-        else:
-            st.plotly_chart(
-                charts.grafico_renda_abandono(serie, ano),
-                width="stretch",
-                config=charts.PLOTLY_CONFIG,
-            )
+    for linha in (cards[:3], cards[3:]):
+        for coluna, card in zip(st.columns(3), linha):
+            with coluna:
+                ui.html(card)

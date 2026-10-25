@@ -198,3 +198,11 @@ def taxa_por_grupo(df: pd.DataFrame, ano: int, regiao: str, coluna: str,
         .assign(Ordem=lambda d: d["Categoria"].map({c: i for i, c in enumerate(categorias)}))
         .sort_values(["Ordem", "Etapa"])
     )
+
+def media_por_categoria(df: pd.DataFrame, ano: int, regiao: str, coluna: str,
+                        categorias: list[str], filtros: dict,
+                        etapa: str = "Fundamental + Médio") -> pd.Series:
+    """Taxa média das etapas escolhidas para cada categoria (sem categorias vazias)."""
+    t = taxa_por_grupo(df, ano, regiao, coluna, categorias, filtros)
+    t = t[t["Etapa"].isin(ETAPAS[etapa])]
+    return t.groupby("Categoria")["Taxa"].mean().reindex(categorias).dropna()
