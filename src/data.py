@@ -30,10 +30,11 @@ def carregar_dados() -> pd.DataFrame:
     return df
 
 
-def filtrar_base(df: pd.DataFrame, localizacao: str, etapa: str) -> pd.DataFrame:
-    """Rede total (todas as dependências), na localização e etapa escolhidas."""
+def filtrar_base(df: pd.DataFrame, localizacao: str, etapa: str,
+                 dependencia: str = "Total") -> pd.DataFrame:
+    """Linhas da dependência, localização e etapa escolhidas."""
     return df[
-        df["Dependencia_Administrativa"].eq("Total")
+        df["Dependencia_Administrativa"].eq(dependencia)
         & df["Localizacao"].eq(localizacao)
         & df["Grupo_de_Abandono"].isin(ETAPAS[etapa])
     ]
@@ -46,6 +47,7 @@ def serie_anual(base: pd.DataFrame, regiao: str) -> pd.DataFrame:
     return (
         sel.groupby("Ano", as_index=False)
         .agg(Taxa=("Taxa_Abandono", "mean"), Renda=("Renda_Media", "mean"))
+        .dropna(subset=["Taxa"])
         .sort_values("Ano")
     )
 
@@ -76,35 +78,38 @@ class KPIs:
     critico_rotulo: str
 
 
+def _valor(v) -> float | None:
+    """Converte para float; vazio (None ou NaN) vira None."""
+    return None if v is None or pd.isna(v) else float(v)
+
+
 def calcular_kpis(base: pd.DataFrame, ano: int, regiao: str) -> KPIs:
     # Taxa e renda do ano escolhido e do ano anterior
     serie = serie_anual(base, regiao).set_index("Ano")
     atual = serie.loc[ano] if ano in serie.index else None
     anterior = serie.loc[ano - 1] if (ano - 1) in serie.index else None
 
-    taxa = float(atual["Taxa"]) if atual is not None else None
-    renda = float(atual["Renda"]) if atual is not None else None
-    taxa_delta = taxa - float(anterior["Taxa"]) if (anterior is not None and taxa is not None) else None
-    renda_delta = (
-        (renda / float(anterior["Renda"]) - 1) * 100
-        if (anterior is not None and renda is not None)
-        else None
-    )
+    taxa = _valor(atual["Taxa"]) if atual is not None else None
+    renda = _valor(atual["Renda"]) if atual is not None else None
+    taxa_ant = _valor(anterior["Taxa"]) if anterior is not None else None
+    renda_ant = _valor(anterior["Renda"]) if anterior is not None else None
+    taxa_delta = taxa - taxa_ant if (taxa is not None and taxa_ant is not None) else None
+    renda_delta = (renda / renda_ant - 1) * 100 if (renda is not None and renda_ant) else None
 
     # Correlação de Pearson entre renda e abandono, comparando as UFs
     ufs = tabela_ufs(base, ano, regiao)
-    corr = float(ufs["Taxa"].corr(ufs["Renda"])) if len(ufs) >= 3 else None
+    corr = _valor(ufs["Taxa"].corr(ufs["Renda"])) if len(ufs) >= 3 else None
 
     # Mais crítica: região (se "Todas") ou UF (se uma região foi escolhida)
     if regiao == "Todas":
         reg = base[base["Nivel"].eq("Região") & base["Ano"].eq(ano)]
         por_regiao = reg.groupby("Unidade_Geografica")["Taxa_Abandono"].mean().dropna()
         nome = por_regiao.idxmax() if not por_regiao.empty else "—"
-        valor = float(por_regiao.max()) if not por_regiao.empty else None
+        valor = _valor(por_regiao.max()) if not por_regiao.empty else None
         rotulo = "Região mais crítica"
     else:
         nome = ufs.iloc[0]["Unidade_Geografica"] if not ufs.empty else "—"
-        valor = float(ufs.iloc[0]["Taxa"]) if not ufs.empty else None
+        valor = _valor(ufs.iloc[0]["Taxa"]) if not ufs.empty else None
         rotulo = "UF mais crítica"
 
     return KPIs(taxa, taxa_delta, renda, renda_delta, corr, len(ufs), nome, valor, rotulo)
@@ -166,4 +171,30 @@ def serie_regioes(base: pd.DataFrame) -> pd.DataFrame:
         .agg(Taxa=("Taxa_Abandono", "mean"))
         .rename(columns={"Unidade_Geografica": "Regiao"})
         .dropna(subset=["Taxa"])
+    )
+
+def taxa_por_grupo(df: pd.DataFrame, ano: int, regiao: str, coluna: str,
+                   categorias: list[str], filtros: dict) -> pd.DataFrame:
+    """Taxa do Fundamental e do Médio para cada categoria de uma coluna.
+
+    Ex.: coluna="Localizacao", categorias=["Urbana", "Rural"],
+         filtros={"Dependencia_Administrativa": "Total"}.
+    Usa as linhas agregadas do Brasil ou da região escolhida.
+    """
+    unidade = "Brasil" if regiao == "Todas" else regiao
+    sel = df[
+        df["Nivel"].isin(["Brasil", "Região"])
+        & df["Unidade_Geografica"].eq(unidade)
+        & df["Ano"].eq(ano)
+        & df[coluna].isin(categorias)
+        & df["Grupo_de_Abandono"].isin(ETAPAS["Fundamental + Médio"])
+    ]
+    for col, valor in filtros.items():
+        sel = sel[sel[col].eq(valor)]
+    sel = sel.dropna(subset=["Taxa_Abandono"])
+    return (
+        sel.rename(columns={coluna: "Categoria", "Grupo_de_Abandono": "Etapa", "Taxa_Abandono": "Taxa"})
+        [["Categoria", "Etapa", "Taxa"]]
+        .assign(Ordem=lambda d: d["Categoria"].map({c: i for i, c in enumerate(categorias)}))
+        .sort_values(["Ordem", "Etapa"])
     )

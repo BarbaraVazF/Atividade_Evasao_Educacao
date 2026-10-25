@@ -276,3 +276,51 @@ def grafico_correlacao_tempo(corr: pd.DataFrame) -> go.Figure:
     fig.update_xaxes(tickmode="linear", dtick=1, showgrid=False, **estilo)
     fig.update_yaxes(range=[-0.8, 0.1], dtick=0.1, tickformat=".1f", showgrid=False, **estilo)
     return fig
+
+def grafico_barras_categoria(dados: pd.DataFrame, cores: dict, vertical: bool = False) -> go.Figure:
+    """Barras com a taxa média (Fundamental + Médio) de cada categoria.
+
+    'dados' vem de data.taxa_por_grupo; 'cores' liga cada categoria a uma cor.
+    vertical=True desenha barras em pé (como o gráfico por série); senão, deitadas.
+    Ao passar o mouse, mostra a taxa de cada etapa.
+    """
+    ordem = list(dict.fromkeys(dados.sort_values("Ordem")["Categoria"]))
+    largo = dados.pivot(index="Categoria", columns="Etapa", values="Taxa").reindex(ordem)
+    media = largo.mean(axis=1)   # média das etapas disponíveis
+
+    def etapa(cat: str, nome: str) -> str:
+        """Taxa de uma etapa formatada, ou '—' se não houver dado."""
+        v = largo.loc[cat].get(nome)
+        return "—" if pd.isna(v) else f"{v:.1f}%".replace(".", ",")
+
+    # No tooltip, a categoria e o valor trocam de eixo conforme a orientação
+    rotulo = "%{x}" if vertical else "%{y}"
+    valor = "%{y:.2f}%" if vertical else "%{x:.2f}%"
+
+    fig = go.Figure(
+        go.Bar(
+            x=ordem if vertical else media,
+            y=media if vertical else ordem,
+            orientation="v" if vertical else "h",
+            marker=dict(color=[cores.get(c, AZUL_LOUSA) for c in ordem], cornerradius=4),
+            text=[f"{v:.2f}%".replace(".", ",") for v in media],
+            textposition="outside", cliponaxis=False, textfont=dict(size=13),
+            customdata=[[etapa(c, "Ensino Fundamental"), etapa(c, "Ensino Médio")] for c in ordem],
+            hovertemplate=(f"<b>{rotulo}</b>: {valor}<br>Fundamental: %{{customdata[0]}}"
+                           "<br>Médio: %{customdata[1]}<extra></extra>"),
+        )
+    )
+
+    _layout_base(fig, 300)
+    fig.update_layout(showlegend=False, bargap=0.4)
+
+    if vertical:
+        # Mesmo estilo do gráfico por série: eixos limpos e linhas horizontais
+        _eixos_limpos(fig)
+        fig.update_yaxes(ticksuffix="%", range=[0, media.max() * 1.25],
+                         showgrid=True, gridcolor=CINZA_LINHA, griddash="solid")
+    else:
+        fig.update_yaxes(categoryorder="array", categoryarray=ordem[::-1], showgrid=False,
+                         showline=True, linecolor=CINZA_MEDIO, tickfont=dict(size=13))
+        fig.update_xaxes(visible=False, range=[0, media.max() * 1.2])   # folga para o rótulo
+    return fig

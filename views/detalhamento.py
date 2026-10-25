@@ -3,7 +3,9 @@ import pandas as pd
 import streamlit as st
 
 from src import charts, data, ui
-from src.config import DEPENDENCIAS, ETAPAS, LOCALIZACOES, REGIOES
+from src.config import (
+    CORES_DEPENDENCIA, CORES_LOCALIZACAO, DEPENDENCIAS, ETAPAS, LOCALIZACOES, REGIOES,
+)
 from src.formatters import sinal
 
 
@@ -27,7 +29,7 @@ def _filtros(df: pd.DataFrame) -> tuple[int, str, str, str]:
     anos = sorted(df["Ano"].unique(), reverse=True)
 
     with st.container(key="filtros"):
-        c1, c2, c3, c4 = st.columns([1, 1.2, 1, 1.5])
+        c1, c2, c3, c4 = st.columns([0.8, 1.1, 1, 1.1])
         ano = c1.selectbox("ANO", anos, key="d_ano")
         regiao = c2.selectbox("REGIÃO", ["Todas", *REGIOES], key="d_regiao")
         local = c3.selectbox("LOCALIZAÇÃO", LOCALIZACOES, key="d_local")
@@ -41,7 +43,7 @@ def _filtros(df: pd.DataFrame) -> tuple[int, str, str, str]:
 # ---------------------------------------------------------
 def render(df: pd.DataFrame) -> None:
     # ---------- Título e filtros ----------
-    col_titulo, col_filtros = st.columns([1, 2.6], vertical_alignment="center")
+    col_titulo, col_filtros = st.columns([1.5, 2.1], vertical_alignment="center")
     with col_titulo:
         ui.titulo_pagina("Detalhamento", "scatter")
     with col_filtros:
@@ -60,7 +62,7 @@ def render(df: pd.DataFrame) -> None:
     with col_disp, st.container(key="card_dispersao"):
         if len(ufs) >= 3:
             r = ufs["Taxa"].corr(ufs["Renda"])
-            detalhe = f"{len(ufs)} UFs · r = {sinal(r)}"
+            detalhe = f"{len(ufs)} UFs · r = {sinal(r)}" if pd.notna(r) else f"{len(ufs)} UFs"
         else:
             detalhe = f"{len(ufs)} UFs"
         ui.card_titulo("Renda média × abandono por UF", detalhe)
@@ -105,3 +107,29 @@ def render(df: pd.DataFrame) -> None:
         else:
             st.plotly_chart(charts.grafico_regioes(serie_reg, regiao), width="stretch",
                             config=charts.PLOTLY_CONFIG)
+
+    # ---------- Linha 3: por localização e por dependência (metade cada) ----------
+    col_loc, col_dep = st.columns(2, gap="small")
+
+    # Urbana x Rural, barras verticais (usa a dependência escolhida; ignora o filtro de localização)
+    with col_loc, st.container(key="card_localizacao"):
+        loc = data.taxa_por_grupo(df, ano, regiao, "Localizacao", ["Urbana", "Rural"],
+                                  {"Dependencia_Administrativa": dep})
+        ui.card_titulo("Abandono por localização", str(ano))
+        if loc.empty:
+            st.info("Sem dados por localização para esta combinação.")
+        else:
+            st.plotly_chart(charts.grafico_barras_categoria(loc, CORES_LOCALIZACAO, vertical=True),
+                            width="stretch", config=charts.PLOTLY_CONFIG)
+
+    # Redes de ensino, barras horizontais (usa a localização escolhida; ignora o filtro de dependência)
+    with col_dep, st.container(key="card_dependencia"):
+        redes = data.taxa_por_grupo(df, ano, regiao, "Dependencia_Administrativa",
+                                    ["Pública", "Estadual", "Municipal", "Federal", "Privada"],
+                                    {"Localizacao": local})
+        ui.card_titulo("Abandono por dependência", str(ano))
+        if redes.empty:
+            st.info("Sem dados por dependência para esta combinação.")
+        else:
+            st.plotly_chart(charts.grafico_barras_categoria(redes, CORES_DEPENDENCIA),
+                            width="stretch", config=charts.PLOTLY_CONFIG)

@@ -103,3 +103,15 @@ def maiores_quedas(df: pd.DataFrame, ano_ini: int, ano_fim: int, n: int = 2) -> 
     ini = data.tabela_ufs(base, ano_ini, "Todas").set_index("Unidade_Geografica")["Taxa"]
     fim = data.tabela_ufs(base, ano_fim, "Todas").set_index("Unidade_Geografica")["Taxa"]
     return (ini - fim).sort_values(ascending=False).head(n).rename("Queda").reset_index()
+
+def rural_por_regiao(df: pd.DataFrame, ano: int) -> pd.DataFrame:
+    """Taxa (média EF + EM) urbana e rural de cada região, com a razão rural/urbana."""
+    linhas = []
+    for regiao in ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]:
+        t = (data.taxa_por_grupo(df, ano, regiao, "Localizacao", ["Urbana", "Rural"],
+                                 {"Dependencia_Administrativa": "Total"})
+             .groupby("Categoria")["Taxa"].mean())
+        linhas.append({"Regiao": regiao, "Urbana": t.get("Urbana"), "Rural": t.get("Rural")})
+    tabela = pd.DataFrame(linhas).set_index("Regiao")
+    tabela["Razao"] = tabela["Rural"] / tabela["Urbana"]
+    return tabela.sort_values("Razao", ascending=False)

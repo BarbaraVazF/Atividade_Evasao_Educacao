@@ -5,6 +5,8 @@ import streamlit as st
 from src import charts, data, insights, ui
 from src.formatters import num, pct, sinal
 
+EF, EM = "Ensino Fundamental", "Ensino Médio"
+
 
 def _forca(r: float) -> str:
     """Classifica a correlação pelo valor absoluto."""
@@ -23,28 +25,41 @@ def render(df: pd.DataFrame) -> None:
     with st.container(key="insights_titulo"):
         ui.titulo_pagina("Insights", "lightbulb")
 
-    # ---------- Números usados nos textos ----------
+    # ---------- Correlação e evolução ----------
     est = insights.estatisticas_correlacao(df, ano)
     ufs, r = est["ufs"], est["r"]
     corr = insights.correlacao_por_ano(df).set_index("Ano")["r"]
     ano_ini = int(corr.index.min())
     r_ini = corr[ano_ini]
     incl = insights.tendencia(corr.reset_index())
-    salto = corr[ano] - corr[ano - 1]                                       # mudança do último ano
-    queda_pobres, queda_ricos = insights.queda_por_renda(df, ano - 1, ano)  # queda no último ano
+    salto = corr[ano] - corr[ano - 1]
+    queda_pobres, queda_ricos = insights.queda_por_renda(df, ano - 1, ano)
     quedas = insights.maiores_quedas(df, ano - 1, ano)
-
     serie = (data.serie_anual(data.filtrar_base(df, "Total", "Fundamental + Médio"), "Todas")
              .set_index("Ano"))
+
+    # ---------- Regiões e estados ----------
     reg = insights.regioes(df, ano)
     top = ufs.sort_values("Taxa", ascending=False)
     rank_renda = ufs["Renda"].rank(ascending=False).astype(int)
     rico_no_top = top.head(5).loc[rank_renda[top.head(5).index].idxmin()]   # mais rico entre os 5 piores
     pobre_baixo = ufs[ufs["Renda"] < ufs["Renda"].median()].sort_values("Taxa").iloc[0]
+
+    # ---------- Etapa, rede e território ----------
     series = (data.taxa_por_serie(data.filtrar_detalhe(df, "Total", "Total"), ano, "Todas")
               .set_index("Serie")["Taxa"])
-    redes = insights.redes(df, ano)
-    terr = insights.territorio(df, ano)
+    por_etapa = (data.taxa_por_grupo(df, ano, "Todas", "Localizacao", ["Total"],
+                                     {"Dependencia_Administrativa": "Total"})
+                 .set_index("Etapa")["Taxa"])
+    por_rede = (data.taxa_por_grupo(df, ano, "Todas", "Dependencia_Administrativa",
+                                    ["Estadual", "Municipal", "Federal", "Privada"], {"Localizacao": "Total"})
+                .pivot(index="Categoria", columns="Etapa", values="Taxa"))
+    por_local = (data.taxa_por_grupo(df, ano, "Todas", "Localizacao", ["Urbana", "Rural"],
+                                     {"Dependencia_Administrativa": "Total"})
+                 .pivot(index="Categoria", columns="Etapa", values="Taxa"))
+    rural_reg = insights.rural_por_regiao(df, ano)
+    reg_rural = rural_reg.index[0]                                   # região onde o campo mais pesa
+    campo_menor = rural_reg[rural_reg["Razao"] < 1].index.tolist()   # regiões onde o campo evade menos
 
     def uf(i: int) -> str:
         """Estado na posição i do ranking, em negrito, com a taxa."""
@@ -77,11 +92,11 @@ def render(df: pd.DataFrame) -> None:
             )
         with col_graf:
             fig = charts.grafico_correlacao_tempo(corr.reset_index())
-            fig.update_layout(height=320)   # altura próxima à do texto ao lado
+            fig.update_layout(height=320)
             st.plotly_chart(fig, width="stretch", config=charts.PLOTLY_CONFIG)
 
-    # ---------- Linha 2: onde pesa + onde está o problema ----------
-    col_onde, col_porque = st.columns(2, gap="small")
+    # ---------- Linha 2: onde pesa + etapa + rede e território ----------
+    col_onde, col_etapa, col_rede = st.columns(3, gap="small")
 
     with col_onde, st.container(key="card_onde"):
         ui.card_cabecalho("Onde o abandono pesa", "map_pin", str(ano))
@@ -97,17 +112,32 @@ def render(df: pd.DataFrame) -> None:
             """
         )
 
-    with col_porque, st.container(key="card_porque"):
-        ui.card_cabecalho("Onde está o problema", "graduation", str(ano))
+    with col_etapa, st.container(key="card_etapa"):
+        ui.card_cabecalho("A etapa crítica", "graduation", str(ano))
         ui.html(
             f"""
             <p class="insight-texto">Se não é a renda, a pista está na {_cor('trajetória escolar', 'azul')}.
             O abandono {_cor(f"salta {num(series['1º EM'] / series['9º EF'], 1)}×", 'vermelho')} do 9º ano
-            ({pct(series['9º EF'])}) para o 1º ano do Médio ({pct(series['1º EM'])}). A rede
-            <b>{redes.index[0].lower()}</b>, que atende essa etapa, tem a maior taxa ({pct(redes.iloc[0])}, contra
-            {pct(redes.get('Municipal'))} na municipal), e a zona <b>rural</b> evade
-            {num((terr['Rural'] / terr['Urbana'] - 1) * 100, 0)}% mais que a urbana
-            ({pct(terr['Rural'])} contra {pct(terr['Urbana'])}).</p>
+            ({pct(series['9º EF'])}) para o 1º ano do Médio ({pct(series['1º EM'])}), o ponto mais alto de toda
+            a trajetória. No Ensino Médio como um todo, a taxa é {num(por_etapa[EM] / por_etapa[EF], 1)}× a do
+            Fundamental: a entrada nessa etapa, muitas vezes com troca de escola e de rede, é o momento
+            mais frágil.</p>
+            """
+        )
+
+    with col_rede, st.container(key="card_rede"):
+        ui.card_cabecalho("Rede e território", "school", str(ano))
+        regioes_campo = " e ".join(f"no {rg}" for rg in campo_menor) or "em nenhuma região"
+        ui.html(
+            f"""
+            <p class="insight-texto">Mesmo comparando a mesma etapa, a rede {_cor('estadual', 'vermelho')} tem
+            mais abandono: no Médio, {pct(por_rede.loc['Estadual', EM])}, contra
+            {pct(por_rede.loc['Municipal', EM])} na municipal, {pct(por_rede.loc['Federal', EM])} na federal e
+            {pct(por_rede.loc['Privada', EM])} na privada. Na zona rural, a diferença aparece
+            {_cor('no Fundamental', 'azul')} ({pct(por_local.loc['Rural', EF])} contra
+            {pct(por_local.loc['Urbana', EF])} na urbana) e é regional: no {reg_rural}, o campo evade
+            {num(rural_reg.loc[reg_rural, 'Razao'], 1)}× mais que a cidade, enquanto {regioes_campo}
+            o campo evade menos.</p>
             """
         )
 
@@ -121,8 +151,9 @@ def render(df: pd.DataFrame) -> None:
             mudasse, e a queda foi maior justamente nos estados mais pobres. Por isso, a renda, que em {ano_ini}
             explicava {num(r_ini ** 2 * 100, 0)}% das diferenças entre os estados, hoje explica
             {_cor('menos de 1%', 'azul')}. O abandono que resta não está onde há menos renda, e sim na
-            {_cor('entrada do Ensino Médio', 'vermelho')} e em estados específicos, inclusive ricos. A conclusão
-            geral é que reduzir o abandono hoje depende menos da renda das famílias e mais de
-            {_cor('políticas educacionais', 'verde')} voltadas à transição para o Médio e às redes estaduais.</p>
+            {_cor('entrada do Ensino Médio', 'vermelho')}, na rede estadual, no campo do {reg_rural} e em estados
+            específicos, inclusive ricos. A conclusão geral é que reduzir o abandono hoje depende menos da renda
+            das famílias e mais de {_cor('políticas educacionais', 'verde')} voltadas à transição para o Médio
+            e às redes estaduais.</p>
             """
         )
