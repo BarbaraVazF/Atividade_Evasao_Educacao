@@ -12,9 +12,7 @@ from src.formatters import pct, reais, sinal
 OPCOES_ETAPA = ["Todas", "Ensino Fundamental", "Ensino Médio"]
 
 
-# ---------------------------------------------------------
 # Filtros
-# ---------------------------------------------------------
 def _padroes(df: pd.DataFrame) -> dict:
     """Valores iniciais dos filtros."""
     return {
@@ -50,18 +48,16 @@ def _filtros(df: pd.DataFrame) -> tuple[int, str, str, str, str]:
     return int(ano), regiao, local, dep, etapa_calculo
 
 
-# ---------------------------------------------------------
 # Página
-# ---------------------------------------------------------
 def render(df: pd.DataFrame) -> None:
-    # ---------- Título e filtros ----------
+    # Título e filtros 
     col_titulo, col_filtros = st.columns([1, 2.6], vertical_alignment="center")
     with col_titulo:
         ui.titulo_pagina("Visão Geral")
     with col_filtros:
         ano, regiao, local, dep, etapa = _filtros(df)
 
-    # ---------- Banner (o título acompanha a região escolhida) ----------
+    # Banner (o título acompanha a região escolhida) 
     escopo = "no Brasil" if regiao == "Todas" else f"na região {regiao}"
     ui.banner(
         int(df["Ano"].min()),
@@ -69,7 +65,7 @@ def render(df: pd.DataFrame) -> None:
         f"Abandono escolar e renda média {escopo}",
     )
 
-    # ---------- Dados dos cards ----------
+    # Dados dos cards
     base = data.filtrar_base(df, local, etapa, dep)
     k = data.calcular_kpis(base, ano, regiao)
 
@@ -84,7 +80,7 @@ def render(df: pd.DataFrame) -> None:
                                      ["Estadual", "Municipal", "Federal", "Privada"],
                                      {"Localizacao": local}, etapa).sort_values(ascending=False)
 
-    # ---------- Cards (3 por linha, todos do mesmo tamanho) ----------
+    # Cards (3 por linha, todos do mesmo tamanho) 
     cards = [
         ui.kpi_card(
             "Taxa média de abandono", pct(k.taxa), "trending_down", AZUL_LOUSA,
@@ -125,3 +121,11 @@ def render(df: pd.DataFrame) -> None:
         for coluna, card in zip(st.columns(3), linha):
             with coluna:
                 ui.html(card)
+
+    # Atalhos para as outras páginas (linha inteira)
+    with st.container(key="atalhos"):
+        b1, b2 = st.columns(2, gap="small")
+        b1.button("Ver detalhamento", icon=":material/scatter_plot:", key="ir_detalhe",
+                  width="stretch", on_click=ui.ir_para, args=("detalhe",))
+        b2.button("Ver insights", icon=":material/lightbulb:", key="ir_insights",
+                  width="stretch", on_click=ui.ir_para, args=("insights",))

@@ -23,10 +23,10 @@ def _layout_base(fig: go.Figure, altura: int) -> go.Figure:
     fig.update_layout(
         height=altura,
         margin=dict(l=8, r=8, t=8, b=8),
-        paper_bgcolor="rgba(0,0,0,0)",      # fundo transparente: usa o do card
+        paper_bgcolor="rgba(0,0,0,0)", # fundo transparente: usa o do card
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family=FONTE, color=GRAFITE, size=13),
-        separators=",.",                     # vírgula decimal, ponto de milhar
+        separators=",.",                   
         hoverlabel=dict(bgcolor="white", bordercolor=CINZA_LINHA,
                         font=dict(family=FONTE, color=GRAFITE)),
     )
@@ -63,7 +63,7 @@ def grafico_renda_abandono(serie: pd.DataFrame, ano_destaque: int) -> go.Figure:
 
     _layout_base(fig, 400)
     fig.update_layout(
-        hovermode="x unified",               # uma caixa com as duas séries do ano
+        hovermode="x unified",              
         legend=dict(orientation="h", y=1.08, x=0, font=dict(size=12)),
     )
     fig.update_xaxes(tickmode="linear", dtick=1, showgrid=False, linecolor=CINZA_LINHA)
@@ -79,11 +79,11 @@ def grafico_renda_abandono(serie: pd.DataFrame, ano_destaque: int) -> go.Figure:
 
 def grafico_ranking_ufs(ufs: pd.DataFrame, top_n: int) -> go.Figure:
     """Barras horizontais com as UFs de maior abandono, coloridas por região."""
-    dados = ufs.head(top_n).iloc[::-1]   # inverte para a maior ficar no topo
+    dados = ufs.head(top_n).iloc[::-1]   
 
     fig = go.Figure()
 
-    # Uma série por região, para a legenda mostrar as cores
+    # Uma série por região
     for regiao, cor in CORES_REGIAO.items():
         parte = dados[dados["Regiao"].eq(regiao)]
         if parte.empty:
@@ -115,15 +115,13 @@ def grafico_ranking_ufs(ufs: pd.DataFrame, top_n: int) -> go.Figure:
         bargap=0.35,
         legend=dict(orientation="h", y=1.02, yanchor="bottom", x=0, font=dict(size=12)),
     )
-    # Mantém a ordem do ranking (sem isso o Plotly agruparia por região)
+    # Mantém a ordem do ranking 
     fig.update_yaxes(categoryorder="array", categoryarray=dados["Sigla"].tolist(), showgrid=False)
     # Esconde o eixo X e deixa folga à direita para o rótulo do valor
     fig.update_xaxes(visible=False, range=[0, dados["Taxa"].max() * 1.18])
     return fig
 
-# ---------------------------------------------------------
 # Detalhamento
-# ---------------------------------------------------------
 def grafico_dispersao(ufs: pd.DataFrame) -> go.Figure:
     """Renda (X) x abandono (Y) por UF, com linha de tendência."""
     fig = go.Figure()
@@ -189,7 +187,7 @@ def grafico_series(series: pd.DataFrame) -> go.Figure:
     _layout_base(fig, 340)
     fig.update_layout(bargap=0.35, showlegend=False)
     _eixos_limpos(fig)
-    # Rótulos em duas linhas ("1º" em cima, "EF" embaixo) para caber na metade da tela
+    # Rótulos em duas linhas ("1º" em cima, "EF" embaixo)
     fig.update_xaxes(
         tickangle=0,
         tickvals=series["Serie"],
@@ -239,9 +237,7 @@ def grafico_regioes(serie: pd.DataFrame, destaque: str) -> go.Figure:
                      showgrid=True, gridcolor=CINZA_LINHA, griddash="solid")
     return fig
 
-# ---------------------------------------------------------
 # Insights
-# ---------------------------------------------------------
 def grafico_correlacao_tempo(corr: pd.DataFrame) -> go.Figure:
     """Correlação (r) ano a ano, com reta de tendência e as faixas forte/moderada/fraca."""
     fig = go.Figure()

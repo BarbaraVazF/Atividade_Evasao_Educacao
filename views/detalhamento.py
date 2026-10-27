@@ -9,9 +9,7 @@ from src.config import (
 from src.formatters import sinal
 
 
-# ---------------------------------------------------------
 # Filtros
-# ---------------------------------------------------------
 def _filtros(df: pd.DataFrame) -> tuple[int, str, str, str]:
     """Desenha a barra de filtros e devolve os valores escolhidos.
 
@@ -37,12 +35,9 @@ def _filtros(df: pd.DataFrame) -> tuple[int, str, str, str]:
 
     return int(ano), regiao, local, dep
 
-
-# ---------------------------------------------------------
 # Página
-# ---------------------------------------------------------
 def render(df: pd.DataFrame) -> None:
-    # ---------- Título e filtros ----------
+    # Título e filtros
     col_titulo, col_filtros = st.columns([1.5, 2.1], vertical_alignment="center")
     with col_titulo:
         ui.titulo_pagina("Detalhamento", "scatter")
@@ -54,7 +49,7 @@ def render(df: pd.DataFrame) -> None:
     # Só Fundamental e Médio, para a dispersão e o ranking
     base_etapas = base[base["Grupo_de_Abandono"].isin(ETAPAS["Fundamental + Médio"])]
 
-    # ---------- Linha 1: renda e abandono por ano (largura toda) ----------
+    # Linha 1: renda e abandono por ano (largura toda) 
     with st.container(key="card_linha"):
         serie = data.serie_anual(data.filtrar_base(df, local, "Fundamental + Médio", dep), regiao)
         ui.card_titulo(
@@ -67,7 +62,7 @@ def render(df: pd.DataFrame) -> None:
             st.plotly_chart(charts.grafico_renda_abandono(serie, ano), width="stretch",
                             config=charts.PLOTLY_CONFIG)
 
-    # ---------- Linha 2: dispersão (2/3) e ranking de UFs (1/3) ----------
+    # Linha 2: dispersão (2/3) e ranking de UFs (1/3) 
     ufs = data.tabela_ufs(base_etapas, ano, regiao)
     col_disp, col_rank = st.columns([2, 1], gap="small")
 
@@ -99,18 +94,8 @@ def render(df: pd.DataFrame) -> None:
             st.plotly_chart(charts.grafico_ranking_ufs(ufs, top_n=10), width="stretch",
                             config=charts.PLOTLY_CONFIG)
 
-    # ---------- Linha 3: por série e por região (metade cada) ----------
-    col_serie, col_regiao = st.columns(2, gap="small")
-
-    # Abandono em cada série escolar (1º EF ao 3º EM)
-    with col_serie, st.container(key="card_series"):
-        series = data.taxa_por_serie(base, ano, regiao)
-        ui.card_titulo("Abandono por série", str(ano))
-        if series.empty:
-            st.info("Sem dados por série para esta combinação.")
-        else:
-            st.plotly_chart(charts.grafico_series(series), width="stretch",
-                            config=charts.PLOTLY_CONFIG)
+        # Linha 3: por região (esquerda) e por série (direita) 
+    col_regiao, col_serie = st.columns(2, gap="small")
 
     # Abandono de cada região ao longo dos anos
     with col_regiao, st.container(key="card_regioes"):
@@ -125,7 +110,17 @@ def render(df: pd.DataFrame) -> None:
             st.plotly_chart(charts.grafico_regioes(serie_reg, regiao), width="stretch",
                             config=charts.PLOTLY_CONFIG)
 
-    # ---------- Linha 4: por localização e por dependência (metade cada) ----------
+    # Abandono em cada série escolar (1º EF ao 3º EM)
+    with col_serie, st.container(key="card_series"):
+        series = data.taxa_por_serie(base, ano, regiao)
+        ui.card_titulo("Abandono por série", str(ano))
+        if series.empty:
+            st.info("Sem dados por série para esta combinação.")
+        else:
+            st.plotly_chart(charts.grafico_series(series), width="stretch",
+                            config=charts.PLOTLY_CONFIG)
+
+    # Linha 4: por localização e por dependência (metade cada)
     col_loc, col_dep = st.columns(2, gap="small")
 
     # Urbana x Rural, barras verticais (usa a dependência escolhida; ignora o filtro de localização)

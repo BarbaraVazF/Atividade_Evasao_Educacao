@@ -1,8 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap');
 
-/* =========================================================
-   Paleta "Sala de Aula" e medidas gerais
-   ========================================================= */
 :root {
   /* Cores principais */
   --azul-lousa: #1F3A6B;
@@ -15,28 +12,26 @@
   --grafite-suave: #6B7489;
   --linha: #E3E7EF;
   --cinza-giz: #A9B4C8;
-  --giz-claro: #E8EDF7;      /* texto do menu lateral */
+  --giz-claro: #E8EDF7;      
   --cinza-claro: #EEF1F6;
   --cinza-medio: #C5CCD8;
   --verde-claro: #E3F2EC;
   --vermelho-alerta: #B5452F;
   --vermelho-claro: #FBEBE6;
-  --amarelo-escuro: #B8891A; /* usada nos gráficos (Python) */
-  --azul-medio: #3B6FB6;     /* usada nos gráficos (Python) */
-  --verde-menta: #8DBFA8;    /* usada nos gráficos (Python) */
+  --amarelo-escuro: #B8891A; 
+  --azul-medio: #3B6FB6;     
+  --verde-menta: #8DBFA8;    
 
   /* Medidas */
-  --topo: 1.5rem;            /* margem de cima: igual no menu e na página */
-  --raio: 12px;              /* cantos dos cards */
+  --topo: 1.5rem;           
+  --raio: 12px;             
 
   /* Fontes */
   --font-titulo: 'Montserrat', system-ui, sans-serif;
   --font-corpo: 'Avenir', 'Avenir Next', 'Nunito Sans', system-ui, 'Segoe UI', sans-serif;
 }
 
-/* =========================================================
-   Base
-   ========================================================= */
+/* Base */
 html, body, .stApp, p, label, button {
   font-family: var(--font-corpo);
 }
@@ -66,9 +61,7 @@ h1, h2, h3 {
   padding: var(--topo) 1.5rem 2rem !important;
 }
 
-/* =========================================================
-   Menu lateral
-   ========================================================= */
+/* Menu lateral */
 [data-testid="stSidebar"] { background: var(--azul-lousa); }
 [data-testid="stSidebar"] * { color: var(--giz-claro); }
 [data-testid="stSidebarHeader"] { display: none; }
@@ -79,7 +72,7 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   gap: .7rem;
-  margin-bottom: 3rem;          /* distância até as abas */
+  margin-bottom: 3rem;         
 }
 .brand-logo {
   width: 34px;
@@ -124,7 +117,7 @@ h1, h2, h3 {
 [data-testid="stSidebar"] .stButton button [data-testid="stIconMaterial"] { font-size: 1.4rem; }
 [data-testid="stSidebar"] .stButton button:hover { background: rgba(255, 255, 255, .08); }
 
-/* Aba ativa (1ª linha = Streamlit antigo | 2ª = novo) */
+/* Aba ativa */
 [data-testid="stSidebar"] .stButton button[kind="primary"],
 [data-testid="stSidebar"] .stButton button[data-testid="stBaseButton-primary"] {
   background: rgba(255, 255, 255, .12);
@@ -141,9 +134,7 @@ h1, h2, h3 {
   color: var(--cinza-giz) !important;
 }
 
-/* =========================================================
-   Título da página
-   ========================================================= */
+/* Título da página */
 .page-title {
   display: flex;
   align-items: center;
@@ -165,9 +156,7 @@ h1, h2, h3 {
   color: #fff;
 }
 
-/* =========================================================
-   Barra de filtros
-   ========================================================= */
+/* Barra de filtros */
 .st-key-filtros {
   background: #fff;
   border: 1px solid var(--linha);
@@ -187,7 +176,7 @@ h1, h2, h3 {
   margin-bottom: .2rem !important;
 }
 
-/* Caixas dos filtros (1ª linha = Streamlit novo | 2ª = antigo) */
+/* Caixas dos filtros */
 .st-key-filtros [data-testid="stSelectbox"] [role="group"],
 .st-key-filtros [data-baseweb="select"] > div {
   background-color: var(--cinza-claro) !important;
@@ -202,14 +191,12 @@ h1, h2, h3 {
 }
 .st-key-filtros [data-testid="stSelectbox"] input { font-size: .9rem; }
 
-/* =========================================================
-   Banner
-   ========================================================= */
+/* Banner */
 .hero {
   position: relative;
   overflow: hidden;
   border-radius: 14px;
-  min-height: 130px;                  /* altura do banner */
+  min-height: 130px;                 
   margin: .4rem 0 1rem;
   background: var(--azul-lousa);
 }
@@ -217,7 +204,7 @@ h1, h2, h3 {
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center 35%;    /* 2º valor = parte da foto que aparece */
+  background-position: center 35%;   
 }
 /* Degradê azul lousa por cima da foto: forte à esquerda, transparente à direita */
 .hero::after {
@@ -254,17 +241,15 @@ h1, h2, h3 {
   padding: 0;
 }
 
-/* =========================================================
-   Cards de indicadores
-   ========================================================= */
+/* Cards de indicadores */
 .kpi {
   background: #fff;
   border: 1px solid var(--linha);
-  border-top: 4px solid var(--acento);   /* cor vem do Python */
+  border-top: 4px solid var(--acento);
   border-radius: var(--raio);
   padding: 1rem 1.1rem;
   margin-bottom: 1rem;
-  min-height: 150px;                     /* deixa os 4 cards da mesma altura */
+  min-height: 150px;                  
 }
 .kpi-top {
   display: flex;
@@ -283,7 +268,7 @@ h1, h2, h3 {
   display: inline-flex;
   padding: .45rem;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--acento) 14%, white);  /* tom claro da cor do card */
+  background: color-mix(in srgb, var(--acento) 14%, white);  
   color: var(--azul-lousa);
 }
 .kpi-value {
@@ -314,11 +299,9 @@ h1, h2, h3 {
 .chip-bom  { background: var(--verde-claro);    color: var(--verde-quadro); }
 .chip-ruim { background: var(--vermelho-claro); color: var(--vermelho-alerta); }
 
-/* =========================================================
-   Cards dos gráficos e quadrantes (todo container com key "card_...")
-   ========================================================= */
+/* Cards dos gráficos e quadrantes (todo container com key "card_...") */
 [class*="st-key-card_"] {
-  height: 100%;                          /* cards lado a lado com a mesma altura */
+  height: 100%;                          
   background: #fff;
   border: 1px solid var(--linha);
   border-radius: var(--raio);
@@ -342,7 +325,7 @@ h1, h2, h3 {
   margin: 0;
   padding: 0;
 }
-.card-head [data-testid="stHeaderActionElements"] { display: none; }  /* ícone de link do Streamlit */
+.card-head [data-testid="stHeaderActionElements"] { display: none; } 
 
 /* Etiqueta (ano, período, detalhe): azul, ou amarela; vazia não aparece */
 .card-head > span {
@@ -363,7 +346,7 @@ h1, h2, h3 {
 /* Cabeçalho com ícone (página Insights) */
 .card-head-icone {
   align-items: flex-start;
-  margin-bottom: .8rem;                  /* distância entre o título e o texto */
+  margin-bottom: .8rem;                 
 }
 .card-head-left {
   display: flex;
@@ -378,10 +361,8 @@ h1, h2, h3 {
   color: var(--azul-lousa);
 }
 
-/* =========================================================
-   Insights
-   ========================================================= */
-.st-key-insights_titulo { margin-bottom: 1rem; }   /* espaço entre o título e os cards */
+/* Insights */
+.st-key-insights_titulo { margin-bottom: 1rem; }   
 
 .insight-texto {
   font-size: .9rem !important;
@@ -403,8 +384,36 @@ h1, h2, h3 {
 .realce-verde    { color: var(--verde-quadro); }
 .realce-vermelho { color: var(--vermelho-alerta); }
 .realce-amarelo {
-  background: color-mix(in srgb, var(--amarelo-lapis) 35%, white);   /* efeito marca-texto */
+  background: color-mix(in srgb, var(--amarelo-lapis) 35%, white);  
   padding: 0 .25rem;
   border-radius: 4px;
   font-weight: 700;
+}
+
+/* Atalhos da Visão Geral (botões para outras páginas) */
+.st-key-atalhos button {
+  min-height: 3.2rem;
+  background: var(--azul-lousa);
+  color: #fff;
+  border: none;
+  border-radius: var(--raio);
+  font-weight: 700;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--azul-lousa) 20%, transparent);
+}
+.st-key-atalhos button p {
+  font-size: 1rem;
+  color: #fff;
+}
+.st-key-atalhos button [data-testid="stIconMaterial"] {
+  color: var(--amarelo-lapis);        
+  font-size: 1.3rem;
+}
+.st-key-atalhos button:hover {
+  background: color-mix(in srgb, var(--azul-lousa) 88%, white);  
+  color: #fff;
+  border: none;
+}
+.st-key-atalhos button:focus:not(:active) {
+  color: #fff;
+  border: none;
 }

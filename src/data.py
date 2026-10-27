@@ -1,10 +1,4 @@
-"""Leitura do CSV e cálculos dos indicadores.
-
-Estrutura do arquivo:
-- Regiao == "Brasil"  -> linhas agregadas (Unidade_Geografica = Brasil ou nome da região)
-- Regiao != "Brasil"  -> linhas por UF (Unidade_Geografica = nome do estado)
-- Renda_Media é única por UF/ano (repete em todas as categorias).
-"""
+"""Leitura do CSV e cálculos dos indicadores."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -114,9 +108,7 @@ def calcular_kpis(base: pd.DataFrame, ano: int, regiao: str) -> KPIs:
 
     return KPIs(taxa, taxa_delta, renda, renda_delta, corr, len(ufs), nome, valor, rotulo)
 
-# ---------------------------------------------------------
 # Detalhamento
-# ---------------------------------------------------------
 def filtrar_detalhe(df: pd.DataFrame, localizacao: str, dependencia: str) -> pd.DataFrame:
     """Localização e dependência escolhidas, com todas as etapas e séries."""
     return df[

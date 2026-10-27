@@ -1,9 +1,7 @@
 """Constantes do projeto: caminhos, paleta de cores e opções dos filtros."""
 from pathlib import Path
 
-# ---------------------------------------------------------
 # Caminhos
-# ---------------------------------------------------------
 ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "AbandonoEscolar_RendaMedia_2013_2023.csv"
 ASSETS = ROOT / "assets"
@@ -12,9 +10,6 @@ CSS_PATH = ASSETS / "styles.css"
 # Foto do banner: usa o primeiro arquivo que existir
 BANNER_CANDIDATES = [ASSETS / "banner.jpg", ASSETS / "banner.png", ASSETS / "banner.webp"]
 
-# ---------------------------------------------------------
-# Paleta "Sala de Aula"
-# ---------------------------------------------------------
 # Cores principais
 AZUL_LOUSA = "#1F3A6B"      # cor institucional, menu lateral, títulos
 VERDE_QUADRO = "#3E8A6E"    # métricas positivas, gráficos secundários
@@ -37,9 +32,7 @@ VERDE_CLARO = "#E3F2EC"     # fundo do selo positivo
 VERMELHO_ALERTA = "#B5452F" # texto do selo negativo e palavras de alerta
 VERMELHO_CLARO = "#FBEBE6"  # fundo do selo negativo
 
-# ---------------------------------------------------------
 # Cores por categoria nos gráficos (sempre a partir da paleta acima)
-# ---------------------------------------------------------
 CORES_REGIAO = {
     "Norte": AZUL_MEDIO,
     "Nordeste": AMARELO_LAPIS,
@@ -64,15 +57,12 @@ CORES_DEPENDENCIA = {
     "Privada": AMARELO_LAPIS,
 }
 
-# ---------------------------------------------------------
 # Opções dos filtros
-# ---------------------------------------------------------
 REGIOES = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
 LOCALIZACOES = ["Total", "Urbana", "Rural"]
 DEPENDENCIAS = ["Total", "Pública", "Estadual", "Municipal", "Privada", "Federal"]
 
 # Cada etapa aponta para os valores da coluna Grupo_de_Abandono.
-# "Fundamental + Médio" é a combinação usada nos cálculos (no filtro, aparece como "Todas").
 ETAPAS = {
     "Fundamental + Médio": ["Ensino Fundamental", "Ensino Médio"],
     "Ensino Fundamental": ["Ensino Fundamental"],
@@ -95,9 +85,7 @@ SERIES = {
     "3º Ano do Ensino Médio": "3º EM",
 }
 
-# ---------------------------------------------------------
 # Siglas das UFs (usadas no ranking e nos textos)
-# ---------------------------------------------------------
 UF_SIGLAS = {
     "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM", "Bahia": "BA",
     "Ceará": "CE", "Distrito Federal": "DF", "Espírito Santo": "ES", "Goiás": "GO",
